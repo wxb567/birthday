@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>祝李李李文文文琳琳琳生日快乐!!!🎂</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- 配置Tailwind自定义颜色和字体 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6',
+            secondary: '#10b981',
+            dark: '#1e293b',
+            light: '#f8fafc'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <!-- 自定义工具类 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .audio-shadow {
+        box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.1), 0 8px 10px -6px rgba(59, 130, 246, 0.1);
+      }
+      .animate-float {
+        animation: float 6s ease-in-out infinite;
+      }
+      @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+      }
+      .video-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.3);
+        transition: background-color 0.5s ease;
+      }
+      .player-container {
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      .player-container.minimized {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        padding: 0;
+        overflow: hidden;
+        box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.3);
+      }
+      .player-container.minimized .audio-player,
+      .player-container.minimized h1,
+      .player-container.minimized footer {
+        display: none;
+      }
+      .player-container.minimized .cover-container {
+        width: 100%;
+        height: 100%;
+        border: none;
+        margin: 0;
+      }
+      .player-container.minimized .play-pause-icon {
+        display: flex;
+      }
+      .play-pause-icon {
+        display: none;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        justify-content: center;
+        align-items: center;
+        color: #3b82f6;
+        font-size: 18px;
+        cursor: pointer;
+        z-index: 10;
+        transition: all 0.3s ease;
+      }
+      .play-pause-icon:hover {
+        background-color: rgba(255, 255, 255, 1);
+        transform: translate(-50%, -50%) scale(1.1);
+      }
+      .minimize-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 24px;
+        height: 24px;
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #3b82f6;
+        font-size: 12px;
+        cursor: pointer;
+        z-index: 10;
+        transition: all 0.3s ease;
+      }
+      .minimize-btn:hover {
+        background-color: rgba(255, 255, 255, 1);
+        transform: scale(1.1);
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 text-light overflow-hidden relative">
+  <!-- 背景视频 -->
+  <video 
+    id="background-video" 
+    class="fixed inset-0 w-full h-full object-cover z-[-1]" 
+    autoplay 
+    loop 
+    playsinline
+  >
+    <source src="background.mp4" type="video/mp4">
+    <!-- 备用视频格式 -->
+    <source src="background.webm" type="video/webm">
+    <source src="background.ogg" type="video/ogg">
+    <!-- 如果浏览器不支持视频，则显示备用背景 -->
+    <div class="fixed inset-0 bg-gradient-to-br from-slate-900 to-slate-800"></div>
+  </video>
+  
+  <!-- 视频覆盖层 - 增加可读性 -->
+  <div id="video-overlay" class="video-overlay z-[-1]"></div>
+  
+  <!-- 音频播放器容器 -->
+  <div id="player-container" class="max-w-md w-full bg-white/90 backdrop-blur-sm rounded-2xl p-6 audio-shadow transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 z-10 player-container">
+    <!-- 最小化按钮 -->
+    <div id="minimize-btn" class="minimize-btn">
+      <i class="fa fa-compress"></i>
+    </div>
+    
+    <!-- 音频封面 -->
+    <div class="cover-container relative w-48 h-48 mx-auto mb-6 rounded-full overflow-hidden border-4 border-primary/20 animate-float">
+      <img src="lee.jpg" alt="陶喆祝福封面" class="w-full h-full object-cover">
+      <div class="absolute inset-0 bg-gradient-to-t from-slate-900/70 to-transparent"></div>
+      <div class="absolute inset-0 flex items-center justify-center">
+        <i class="fa fa-music text-4xl text-primary/80"></i>
+      </div>
+    </div>
+    
+    <!-- 音频信息 -->
+    <div class="text-center mb-6">
+      <h1 class="text-2xl font-bold mb-2 text-dark">🎂陶喆送给你的祝福🎂</h1>
+    </div>
+    
+    <!-- 音频播放器 -->
+    <div class="audio-player">
+      <!-- 进度条 -->
+      <div class="mb-4">
+        <div class="flex justify-between text-xs text-slate-500 mb-1">
+          <span id="current-time">0:00</span>
+          <span id="duration">0:00</span>
+        </div>
+        <div class="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden cursor-pointer" id="progress-container">
+          <div class="h-full bg-primary rounded-full" id="progress-bar" style="width: 0%"></div>
+        </div>
+      </div>
+      
+      <!-- 控制按钮 -->
+      <div class="flex items-center justify-center gap-4 mb-4">
+        <button id="prev-btn" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors">
+          <i class="fa fa-step-backward text-xl text-slate-600"></i>
+        </button>
+        <button id="play-btn" class="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+          <i class="fa fa-play text-2xl ml-1"></i>
+        </button>
+        <button id="next-btn" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors">
+          <i class="fa fa-step-forward text-xl text-slate-600"></i>
+        </button>
+      </div>
+      
+      <!-- 音量控制 -->
+      <div class="flex items-center gap-2">
+        <i class="fa fa-volume-up text-slate-600"></i>
+        <input type="range" id="volume-control" min="0" max="1" step="0.05" value="0.7" class="w-full accent-primary">
+      </div>
+    </div>
+    
+    <!-- 小窗口模式下的播放/暂停图标 -->
+    <div id="play-pause-icon" class="play-pause-icon">
+      <i class="fa fa-play"></i>
+    </div>
+  </div>
+  
+  <!-- 页脚信息 -->
+  <footer id="footer" class="mt-8 text-center text-white/80 text-sm z-10">
+    <p>hou hou hou，potato</p>
+  </footer>
+  
+  <!-- JavaScript -->
+  <script>
+    // 获取背景视频元素
+    const backgroundVideo = document.getElementById('background-video');
+    const videoOverlay = document.getElementById('video-overlay');
+    const footer = document.getElementById('footer');
+    
+    // 设置背景视频音量为40%
+    backgroundVideo.volume = 0.4;
+    
+    // 尝试播放背景视频
+    backgroundVideo.play().catch(error => {
+      console.log("背景视频自动播放被阻止:", error);
+    });
+    
+    // 获取播放器元素
+    const playerContainer = document.getElementById('player-container');
+    const minimizeBtn = document.getElementById('minimize-btn');
+    const playPauseIcon = document.getElementById('play-pause-icon');
+    const playBtn = document.getElementById('play-btn');
+    const progressBar = document.getElementById('progress-bar');
+    const currentTimeEl = document.getElementById('current-time');
+    const durationEl = document.getElementById('duration');
+    const progressContainer = document.getElementById('progress-container');
+    const volumeControl = document.getElementById('volume-control');
+    
+    // 初始化变量
+    let isMinimized = false;
+    let hasPlayedOnce = false;
+    
+    // 最小化/最大化播放器
+    function toggleMinimize() {
+      isMinimized = !isMinimized;
+      
+      if (isMinimized) {
+        // 最小化
+        playerContainer.classList.add('minimized');
+        videoOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.1)'; // 减少覆盖层不透明度
+        footer.style.display = 'none'; // 隐藏页脚文字
+      } else {
+        // 最大化
+        playerContainer.classList.remove('minimized');
+        videoOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.3)'; // 恢复覆盖层不透明度
+        footer.style.display = 'block'; // 显示页脚文字
+      }
+      
+      // 更新小窗口模式下的播放/暂停图标
+      updatePlayPauseIcon();
+    }
+    
+    // 更新小窗口模式下的播放/暂停图标
+    function updatePlayPauseIcon() {
+      if (isMinimized) {
+        if (audio.paused) {
+          playPauseIcon.innerHTML = '<i class="fa fa-play"></i>';
+        } else {
+          playPauseIcon.innerHTML = '<i class="fa fa-pause"></i>';
+        }
+      }
+    }
+    
+    // 音频播放结束后自动最小化
+    function minimizeAfterPlay() {
+      if (hasPlayedOnce && !isMinimized) {
+        toggleMinimize();
+      }
+    }
+    
+    // 点击最小化按钮
+    minimizeBtn.addEventListener('click', toggleMinimize);
+    
+    // 点击播放器容器（小窗口模式下）
+    playerContainer.addEventListener('click', (e) => {
+      // 避免点击内部元素时触发
+      if (isMinimized && e.target === playerContainer) {
+        toggleMinimize();
+      }
+    });
+    
+    // 获取音频元素
+    const audio = new Audio('birthday.wav');
+    
+    // 点击播放按钮
+    playBtn.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play();
+        hasPlayedOnce = true;
+      } else {
+        audio.pause();
+      }
+      updatePlayIcon();
+      updatePlayPauseIcon();
+    });
+    
+    // 点击小窗口模式下的播放/暂停图标
+    playPauseIcon.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play();
+      } else {
+        audio.pause();
+      }
+      updatePlayIcon();
+      updatePlayPauseIcon();
+    });
+    
+    // 更新播放按钮图标
+    function updatePlayIcon() {
+      if (audio.paused) {
+        playBtn.innerHTML = '<i class="fa fa-play text-2xl ml-1"></i>';
+      } else {
+        playBtn.innerHTML = '<i class="fa fa-pause text-2xl"></i>';
+      }
+    }
+    
+    // 播放状态变化时更新图标
+    audio.addEventListener('play', () => {
+      updatePlayIcon();
+      updatePlayPauseIcon();
+    });
+    
+    audio.addEventListener('pause', () => {
+      updatePlayIcon();
+      updatePlayPauseIcon();
+    });
+    
+    // 音频结束后自动最小化
+    audio.addEventListener('ended', () => {
+      audio.currentTime = 0;
+      audio.pause();
+      updatePlayIcon();
+      updatePlayPauseIcon();
+      minimizeAfterPlay();
+    });
+    
+    // 更新进度条
+    function updateProgress() {
+      const { duration, currentTime } = audio;
+      const progressPercent = (currentTime / duration) * 100;
+      progressBar.style.width = `${progressPercent}%`;
+      
+      // 更新时间显示
+      currentTimeEl.textContent = formatTime(currentTime);
+      durationEl.textContent = formatTime(duration);
+    }
+    
+    // 格式化时间为分:秒
+    function formatTime(time) {
+      if (isNaN(time)) return '0:00';
+      
+      const minutes = Math.floor(time / 60);
+      const seconds = Math.floor(time % 60);
+      
+      return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    }
+    
+    // 点击进度条更新播放位置
+    progressContainer.addEventListener('click', (e) => {
+      const width = progressContainer.clientWidth;
+      const clickX = e.offsetX;
+      const duration = audio.duration;
+      
+      audio.currentTime = (clickX / width) * duration;
+    });
+    
+    // 更新音量
+    volumeControl.addEventListener('input', () => {
+      audio.volume = volumeControl.value;
+    });
+    
+    // 音频加载元数据时更新总时长
+    audio.addEventListener('loadedmetadata', updateProgress);
+    
+    // 音频播放时更新进度
+    audio.addEventListener('timeupdate', updateProgress);
+    
+    // 模拟上一首/下一首按钮的禁用状态
+    document.getElementById('prev-btn').disabled = true;
+    document.getElementById('next-btn').disabled = true;
+    document.querySelectorAll('#prev-btn, #next-btn').forEach(btn => {
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+    });
+  </script>
+</body>
+</html>
