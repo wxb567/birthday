@@ -123,9 +123,42 @@
         background-color: rgba(255, 255, 255, 1);
         transform: scale(1.1);
       }
-      .touchable {
-        min-height: 48px;
-        min-width: 48px;
+      .mute-toggle {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        width: 40px;
+        height: 40px;
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #3b82f6;
+        font-size: 18px;
+        cursor: pointer;
+        z-index: 20;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+      .mute-toggle:hover {
+        background-color: rgba(255, 255, 255, 1);
+        transform: scale(1.1);
+      }
+      .mute-toggle.muted {
+        background-color: rgba(239, 68, 68, 0.8);
+        color: white;
+      }
+      .mute-toggle.muted:hover {
+        background-color: rgba(239, 68, 68, 1);
+      }
+      .mute-toggle-animation {
+        animation: pulse 0.5s ease-in-out;
+      }
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
       }
     }
   </style>
@@ -138,6 +171,7 @@
     autoplay 
     loop 
     playsinline
+    muted
   >
     <source src="background.mp4" type="video/mp4">
     <!-- 备用视频格式 -->
@@ -149,6 +183,11 @@
   
   <!-- 视频覆盖层 - 增加可读性 -->
   <div id="video-overlay" class="video-overlay z-[-1]"></div>
+  
+  <!-- 静音控制按钮 -->
+  <div id="mute-toggle" class="mute-toggle muted">
+    <i class="fa fa-volume-off"></i>
+  </div>
   
   <!-- 音频播放器容器 -->
   <div id="player-container" class="max-w-md w-full bg-white/90 backdrop-blur-sm rounded-2xl p-6 audio-shadow transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 z-10 player-container">
@@ -189,7 +228,7 @@
         <button id="prev-btn" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors">
           <i class="fa fa-step-backward text-xl text-slate-600"></i>
         </button>
-        <button id="play-btn" class="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all touchable">
+        <button id="play-btn" class="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
           <i class="fa fa-play text-2xl ml-1"></i>
         </button>
         <button id="next-btn" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors">
@@ -221,9 +260,10 @@
     const backgroundVideo = document.getElementById('background-video');
     const videoOverlay = document.getElementById('video-overlay');
     const footer = document.getElementById('footer');
+    const muteToggle = document.getElementById('mute-toggle');
     
-    // 设置背景视频音量为40%
-    backgroundVideo.volume = 0.4;
+    // 设置背景视频初始为静音
+    backgroundVideo.muted = true;
     
     // 尝试播放背景视频
     backgroundVideo.play().catch(error => {
@@ -245,28 +285,35 @@
     let isMinimized = false;
     let hasPlayedOnce = false;
     
-    // 检查是否是移动设备
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    // 静音控制函数
+    function toggleMute() {
+      backgroundVideo.muted = !backgroundVideo.muted;
+      
+      // 更新按钮样式
+      if (backgroundVideo.muted) {
+        muteToggle.classList.add('muted');
+        muteToggle.innerHTML = '<i class="fa fa-volume-off"></i>';
+      } else {
+        muteToggle.classList.remove('muted');
+        muteToggle.innerHTML = '<i class="fa fa-volume-up"></i>';
+      }
+      
+      // 添加动画效果
+      muteToggle.classList.add('mute-toggle-animation');
+      setTimeout(() => {
+        muteToggle.classList.remove('mute-toggle-animation');
+      }, 500);
+    }
     
-    // 如果是移动设备，调整一些样式
-    if (isMobile) {
-      // 调整封面大小
-      const coverContainer = document.querySelector('.cover-container');
-      coverContainer.classList.remove('w-48', 'h-48');
-      coverContainer.classList.add('w-40', 'h-40');
-      
-      // 调整按钮大小
-      playBtn.classList.remove('w-14', 'h-14');
-      playBtn.classList.add('w-16', 'h-16');
-      
-      // 调整字体大小
-      const title = document.querySelector('h1');
-      title.classList.remove('text-2xl');
-      title.classList.add('text-xl');
-      
-      // 调整容器内边距
-      playerContainer.classList.remove('p-6');
-      playerContainer.classList.add('p-4');
+    // 点击静音按钮
+    muteToggle.addEventListener('click', toggleMute);
+    
+    // 尝试取消静音（用户交互后）
+    function tryUnmute() {
+      if (backgroundVideo.muted) {
+        backgroundVideo.muted = false;
+        toggleMute();
+      }
     }
     
     // 最小化/最大化播放器
@@ -326,6 +373,7 @@
       if (audio.paused) {
         audio.play();
         hasPlayedOnce = true;
+        tryUnmute(); // 尝试取消背景视频静音
       } else {
         audio.pause();
       }
@@ -337,6 +385,7 @@
     playPauseIcon.addEventListener('click', () => {
       if (audio.paused) {
         audio.play();
+        tryUnmute(); // 尝试取消背景视频静音
       } else {
         audio.pause();
       }
@@ -420,30 +469,6 @@
     document.querySelectorAll('#prev-btn, #next-btn').forEach(btn => {
       btn.classList.add('opacity-50', 'cursor-not-allowed');
     });
-    
-    // 移动端触摸事件处理
-    function setupTouchEvents() {
-      // 为播放按钮添加触摸反馈
-      playBtn.addEventListener('touchstart', () => {
-        playBtn.classList.add('scale-95');
-      });
-      
-      playBtn.addEventListener('touchend', () => {
-        playBtn.classList.remove('scale-95');
-      });
-      
-      // 为最小化按钮添加触摸反馈
-      minimizeBtn.addEventListener('touchstart', () => {
-        minimizeBtn.classList.add('scale-95');
-      });
-      
-      minimizeBtn.addEventListener('touchend', () => {
-        minimizeBtn.classList.remove('scale-95');
-      });
-    }
-    
-    // 初始化触摸事件
-    setupTouchEvents();
   </script>
 </body>
 </html>
