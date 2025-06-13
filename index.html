@@ -279,24 +279,76 @@
     });
     
     // 移动端点击播放视频
-    mobilePlayBtn.addEventListener('click', () => {
-      backgroundVideo.play().then(() => {
-        mobileVideoPrompt.classList.add('hidden');
-      }).catch(error => {
+    mobilePlayBtn.addEventListener('click', async () => {
+      try {
+        await backgroundVideo.play();
+        hideVideoPrompt();
+      } catch (error) {
         console.log("手动播放视频失败:", error);
-      });
+        // 尝试显示更具体的错误信息
+        showErrorPrompt("无法播放视频，请检查您的设备设置");
+      }
     });
     
     // 点击页面其他区域也可触发播放（移动端）
-    document.addEventListener('touchstart', () => {
+    document.addEventListener('touchstart', async () => {
       if (mobileVideoPrompt.classList.contains('hidden')) return;
       
-      backgroundVideo.play().then(() => {
-        mobileVideoPrompt.classList.add('hidden');
-      }).catch(error => {
+      try {
+        await backgroundVideo.play();
+        hideVideoPrompt();
+      } catch (error) {
         console.log("触摸事件触发播放失败:", error);
-      });
+      }
     });
+    
+    // 监听视频播放状态
+    backgroundVideo.addEventListener('playing', () => {
+      hideVideoPrompt();
+    });
+    
+    // 监听视频加载错误
+    backgroundVideo.addEventListener('error', (event) => {
+      console.log("视频加载错误:", event.target.error);
+      showErrorPrompt("视频加载失败，请检查网络连接");
+    });
+    
+    // 隐藏视频播放提示
+    function hideVideoPrompt() {
+      // 添加淡出动画效果
+      mobileVideoPrompt.style.opacity = '1';
+      mobileVideoPrompt.style.transition = 'opacity 0.5s ease-out';
+      
+      // 延迟一点时间，确保用户看到反馈
+      setTimeout(() => {
+        mobileVideoPrompt.style.opacity = '0';
+        setTimeout(() => {
+          mobileVideoPrompt.classList.add('hidden');
+          // 重置透明度，以便下次显示时正常
+          mobileVideoPrompt.style.opacity = '1';
+        }, 500);
+      }, 300);
+    }
+    
+    // 显示错误提示
+    function showErrorPrompt(message) {
+      const errorElement = document.createElement('div');
+      errorElement.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
+      errorElement.textContent = message;
+      
+      document.body.appendChild(errorElement);
+      
+      // 3秒后自动消失
+      setTimeout(() => {
+        errorElement.style.opacity = '1';
+        errorElement.style.transition = 'opacity 0.5s ease-out';
+        errorElement.style.opacity = '0';
+        
+        setTimeout(() => {
+          document.body.removeChild(errorElement);
+        }, 500);
+      }, 3000);
+    }
     
     // 获取播放器元素
     const playerContainer = document.getElementById('player-container');
