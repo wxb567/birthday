@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🎂🎉祝李文琳生日快乐🎉🎂</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
@@ -123,43 +123,9 @@
         background-color: rgba(255, 255, 255, 1);
         transform: scale(1.1);
       }
-      /* 移动端视频播放提示样式 */
-      .mobile-video-prompt {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        background-color: rgba(0, 0, 0, 0.8);
-        z-index: 50;
-        color: white;
-        padding: 20px;
-        text-align: center;
-      }
-      .mobile-video-prompt h2 {
-        font-size: 1.5rem;
-        margin-bottom: 10px;
-      }
-      .mobile-video-prompt p {
-        margin-bottom: 20px;
-        opacity: 0.8;
-      }
-      .mobile-play-btn {
-        background-color: #3b82f6;
-        color: white;
-        padding: 12px 24px;
-        border-radius: 30px;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
-      .mobile-play-btn:hover {
-        background-color: #2563eb;
-        transform: scale(1.05);
+      .touchable {
+        min-height: 48px;
+        min-width: 48px;
       }
     }
   </style>
@@ -172,7 +138,6 @@
     autoplay 
     loop 
     playsinline
-    muted  <!-- 新增：静音属性，允许移动端自动播放 -->
   >
     <source src="background.mp4" type="video/mp4">
     <!-- 备用视频格式 -->
@@ -184,15 +149,6 @@
   
   <!-- 视频覆盖层 - 增加可读性 -->
   <div id="video-overlay" class="video-overlay z-[-1]"></div>
-  
-  <!-- 移动端视频播放提示 -->
-  <div id="mobile-video-prompt" class="mobile-video-prompt hidden">
-    <h2>点击播放生日氛围</h2>
-    <p>由于移动端限制，需要手动点击播放背景视频哦~</p>
-    <button id="mobile-play-btn" class="mobile-play-btn">
-      <i class="fa fa-play-circle mr-2"></i>播放视频
-    </button>
-  </div>
   
   <!-- 音频播放器容器 -->
   <div id="player-container" class="max-w-md w-full bg-white/90 backdrop-blur-sm rounded-2xl p-6 audio-shadow transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 z-10 player-container">
@@ -233,7 +189,7 @@
         <button id="prev-btn" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors">
           <i class="fa fa-step-backward text-xl text-slate-600"></i>
         </button>
-        <button id="play-btn" class="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+        <button id="play-btn" class="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all touchable">
           <i class="fa fa-play text-2xl ml-1"></i>
         </button>
         <button id="next-btn" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors">
@@ -265,8 +221,6 @@
     const backgroundVideo = document.getElementById('background-video');
     const videoOverlay = document.getElementById('video-overlay');
     const footer = document.getElementById('footer');
-    const mobileVideoPrompt = document.getElementById('mobile-video-prompt');
-    const mobilePlayBtn = document.getElementById('mobile-play-btn');
     
     // 设置背景视频音量为40%
     backgroundVideo.volume = 0.4;
@@ -274,81 +228,7 @@
     // 尝试播放背景视频
     backgroundVideo.play().catch(error => {
       console.log("背景视频自动播放被阻止:", error);
-      // 显示移动端播放提示
-      mobileVideoPrompt.classList.remove('hidden');
     });
-    
-    // 移动端点击播放视频
-    mobilePlayBtn.addEventListener('click', async () => {
-      try {
-        await backgroundVideo.play();
-        hideVideoPrompt();
-      } catch (error) {
-        console.log("手动播放视频失败:", error);
-        // 尝试显示更具体的错误信息
-        showErrorPrompt("无法播放视频，请检查您的设备设置");
-      }
-    });
-    
-    // 点击页面其他区域也可触发播放（移动端）
-    document.addEventListener('touchstart', async () => {
-      if (mobileVideoPrompt.classList.contains('hidden')) return;
-      
-      try {
-        await backgroundVideo.play();
-        hideVideoPrompt();
-      } catch (error) {
-        console.log("触摸事件触发播放失败:", error);
-      }
-    });
-    
-    // 监听视频播放状态
-    backgroundVideo.addEventListener('playing', () => {
-      hideVideoPrompt();
-    });
-    
-    // 监听视频加载错误
-    backgroundVideo.addEventListener('error', (event) => {
-      console.log("视频加载错误:", event.target.error);
-      showErrorPrompt("视频加载失败，请检查网络连接");
-    });
-    
-    // 隐藏视频播放提示
-    function hideVideoPrompt() {
-      // 添加淡出动画效果
-      mobileVideoPrompt.style.opacity = '1';
-      mobileVideoPrompt.style.transition = 'opacity 0.5s ease-out';
-      
-      // 延迟一点时间，确保用户看到反馈
-      setTimeout(() => {
-        mobileVideoPrompt.style.opacity = '0';
-        setTimeout(() => {
-          mobileVideoPrompt.classList.add('hidden');
-          // 重置透明度，以便下次显示时正常
-          mobileVideoPrompt.style.opacity = '1';
-        }, 500);
-      }, 300);
-    }
-    
-    // 显示错误提示
-    function showErrorPrompt(message) {
-      const errorElement = document.createElement('div');
-      errorElement.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
-      errorElement.textContent = message;
-      
-      document.body.appendChild(errorElement);
-      
-      // 3秒后自动消失
-      setTimeout(() => {
-        errorElement.style.opacity = '1';
-        errorElement.style.transition = 'opacity 0.5s ease-out';
-        errorElement.style.opacity = '0';
-        
-        setTimeout(() => {
-          document.body.removeChild(errorElement);
-        }, 500);
-      }, 3000);
-    }
     
     // 获取播放器元素
     const playerContainer = document.getElementById('player-container');
@@ -364,6 +244,30 @@
     // 初始化变量
     let isMinimized = false;
     let hasPlayedOnce = false;
+    
+    // 检查是否是移动设备
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    // 如果是移动设备，调整一些样式
+    if (isMobile) {
+      // 调整封面大小
+      const coverContainer = document.querySelector('.cover-container');
+      coverContainer.classList.remove('w-48', 'h-48');
+      coverContainer.classList.add('w-40', 'h-40');
+      
+      // 调整按钮大小
+      playBtn.classList.remove('w-14', 'h-14');
+      playBtn.classList.add('w-16', 'h-16');
+      
+      // 调整字体大小
+      const title = document.querySelector('h1');
+      title.classList.remove('text-2xl');
+      title.classList.add('text-xl');
+      
+      // 调整容器内边距
+      playerContainer.classList.remove('p-6');
+      playerContainer.classList.add('p-4');
+    }
     
     // 最小化/最大化播放器
     function toggleMinimize() {
@@ -517,19 +421,29 @@
       btn.classList.add('opacity-50', 'cursor-not-allowed');
     });
     
-    // 优化移动端交互体验
-    document.addEventListener('DOMContentLoaded', () => {
-      // 调整播放器在小屏幕上的尺寸
-      if (window.innerWidth < 640) { // 小屏设备
-        const player = document.getElementById('player-container');
-        player.classList.remove('max-w-md');
-        player.classList.add('w-full', 'p-4');
-        
-        const cover = document.querySelector('.cover-container');
-        cover.classList.remove('w-48', 'h-48');
-        cover.classList.add('w-36', 'h-36');
-      }
-    });
+    // 移动端触摸事件处理
+    function setupTouchEvents() {
+      // 为播放按钮添加触摸反馈
+      playBtn.addEventListener('touchstart', () => {
+        playBtn.classList.add('scale-95');
+      });
+      
+      playBtn.addEventListener('touchend', () => {
+        playBtn.classList.remove('scale-95');
+      });
+      
+      // 为最小化按钮添加触摸反馈
+      minimizeBtn.addEventListener('touchstart', () => {
+        minimizeBtn.classList.add('scale-95');
+      });
+      
+      minimizeBtn.addEventListener('touchend', () => {
+        minimizeBtn.classList.remove('scale-95');
+      });
+    }
+    
+    // 初始化触摸事件
+    setupTouchEvents();
   </script>
 </body>
 </html>
