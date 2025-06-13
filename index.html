@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>🎂🎉祝李文琳生日快乐🎉🎂</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   
   <!-- 配置Tailwind自定义颜色和字体 -->
   <script>
@@ -123,94 +123,48 @@
         background-color: rgba(255, 255, 255, 1);
         transform: scale(1.1);
       }
-      /* 移动端优化 */
-      @media (max-width: 768px) {
-        .player-container {
-          width: 90%;
-          max-width: 90%;
-        }
-        .cover-container {
-          width: 180px;
-          height: 180px;
-        }
-        #background-video {
-          object-fit: cover;
-          width: 100%;
-          height: 100%;
-        }
-        #video-overlay {
-          background-color: rgba(0, 0, 0, 0.5);
-        }
-      }
-      @media (max-width: 480px) {
-        .cover-container {
-          width: 150px;
-          height: 150px;
-        }
-        h1 {
-          font-size: 1.3rem;
-        }
-      }
-      /* 视频加载提示 */
-      .video-loading {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+      /* 移动端视频播放提示样式 */
+      .mobile-video-prompt {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
         background-color: rgba(0, 0, 0, 0.8);
-        z-index: 20;
+        z-index: 50;
         color: white;
-        text-align: center;
         padding: 20px;
+        text-align: center;
       }
-      .video-loading.hidden {
-        display: none;
+      .mobile-video-prompt h2 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
       }
-      .video-loading .spinner {
-        border: 4px solid rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        border-top: 4px solid #3b82f6;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
+      .mobile-video-prompt p {
         margin-bottom: 20px;
+        opacity: 0.8;
       }
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      .enable-video-btn {
-        margin-top: 20px;
-        padding: 10px 20px;
-        background: #3b82f6;
+      .mobile-play-btn {
+        background-color: #3b82f6;
         color: white;
+        padding: 12px 24px;
         border-radius: 30px;
+        font-size: 1rem;
         cursor: pointer;
-        border: none;
-        font-weight: bold;
         transition: all 0.3s ease;
       }
-      .enable-video-btn:hover {
-        background: #2563eb;
+      .mobile-play-btn:hover {
+        background-color: #2563eb;
         transform: scale(1.05);
       }
     }
   </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4 text-light overflow-hidden relative">
-  <!-- 视频加载提示 -->
-  <div id="video-loading" class="video-loading">
-    <div class="spinner"></div>
-    <h2 class="text-xl mb-2">正在加载生日祝福视频...</h2>
-    <p class="mb-4">如果视频未能自动播放，请点击下方按钮启用</p>
-    <button id="enable-video-btn" class="enable-video-btn">启用背景视频</button>
-  </div>
-  
   <!-- 背景视频 -->
   <video 
     id="background-video" 
@@ -218,18 +172,27 @@
     autoplay 
     loop 
     playsinline
-    muted
-    preload="auto"
+    muted  <!-- 新增：静音属性，允许移动端自动播放 -->
   >
-    <!-- 使用兼容性更好的视频源 -->
-    <source src="https://assets.codepen.io/4175254/birthday-background.mp4" type="video/mp4">
-    <source src="https://assets.codepen.io/4175254/birthday-background.webm" type="video/webm">
+    <source src="background.mp4" type="video/mp4">
+    <!-- 备用视频格式 -->
+    <source src="background.webm" type="video/webm">
+    <source src="background.ogg" type="video/ogg">
     <!-- 如果浏览器不支持视频，则显示备用背景 -->
     <div class="fixed inset-0 bg-gradient-to-br from-slate-900 to-slate-800"></div>
   </video>
   
   <!-- 视频覆盖层 - 增加可读性 -->
   <div id="video-overlay" class="video-overlay z-[-1]"></div>
+  
+  <!-- 移动端视频播放提示 -->
+  <div id="mobile-video-prompt" class="mobile-video-prompt hidden">
+    <h2>点击播放生日氛围</h2>
+    <p>由于移动端限制，需要手动点击播放背景视频哦~</p>
+    <button id="mobile-play-btn" class="mobile-play-btn">
+      <i class="fa fa-play-circle mr-2"></i>播放视频
+    </button>
+  </div>
   
   <!-- 音频播放器容器 -->
   <div id="player-container" class="max-w-md w-full bg-white/90 backdrop-blur-sm rounded-2xl p-6 audio-shadow transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 z-10 player-container">
@@ -240,7 +203,7 @@
     
     <!-- 音频封面 -->
     <div class="cover-container relative w-48 h-48 mx-auto mb-6 rounded-full overflow-hidden border-4 border-primary/20 animate-float">
-      <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400" alt="生日祝福封面" class="w-full h-full object-cover">
+      <img src="lee.jpg" alt="陶喆祝福封面" class="w-full h-full object-cover">
       <div class="absolute inset-0 bg-gradient-to-t from-slate-900/70 to-transparent"></div>
       <div class="absolute inset-0 flex items-center justify-center">
         <i class="fa fa-music text-4xl text-primary/80"></i>
@@ -302,46 +265,38 @@
     const backgroundVideo = document.getElementById('background-video');
     const videoOverlay = document.getElementById('video-overlay');
     const footer = document.getElementById('footer');
-    const videoLoading = document.getElementById('video-loading');
-    const enableVideoBtn = document.getElementById('enable-video-btn');
+    const mobileVideoPrompt = document.getElementById('mobile-video-prompt');
+    const mobilePlayBtn = document.getElementById('mobile-play-btn');
     
     // 设置背景视频音量为40%
     backgroundVideo.volume = 0.4;
     
     // 尝试播放背景视频
-    function playBackgroundVideo() {
-      // 移动端需要静音才能自动播放
-      backgroundVideo.muted = true;
-      
-      const playPromise = backgroundVideo.play();
-      
-      if (playPromise !== undefined) {
-        playPromise.then(() => {
-          // 播放成功，隐藏加载提示
-          videoLoading.classList.add('hidden');
-        }).catch(error => {
-          console.log("背景视频自动播放被阻止:", error);
-          // 显示启用按钮
-          enableVideoBtn.style.display = 'block';
-        });
-      }
-    }
+    backgroundVideo.play().catch(error => {
+      console.log("背景视频自动播放被阻止:", error);
+      // 显示移动端播放提示
+      mobileVideoPrompt.classList.remove('hidden');
+    });
     
-    // 用户点击启用视频按钮
-    enableVideoBtn.addEventListener('click', () => {
-      // 尝试播放视频
+    // 移动端点击播放视频
+    mobilePlayBtn.addEventListener('click', () => {
       backgroundVideo.play().then(() => {
-        videoLoading.classList.add('hidden');
+        mobileVideoPrompt.classList.add('hidden');
       }).catch(error => {
-        console.log("用户交互后播放失败:", error);
-        // 如果仍然失败，显示备用背景
-        document.body.style.background = "linear-gradient(to bottom right, #1e293b, #0f172a)";
-        videoLoading.classList.add('hidden');
+        console.log("手动播放视频失败:", error);
       });
     });
     
-    // 页面加载完成后尝试播放视频
-    window.addEventListener('load', playBackgroundVideo);
+    // 点击页面其他区域也可触发播放（移动端）
+    document.addEventListener('touchstart', () => {
+      if (mobileVideoPrompt.classList.contains('hidden')) return;
+      
+      backgroundVideo.play().then(() => {
+        mobileVideoPrompt.classList.add('hidden');
+      }).catch(error => {
+        console.log("触摸事件触发播放失败:", error);
+      });
+    });
     
     // 获取播放器元素
     const playerContainer = document.getElementById('player-container');
@@ -408,7 +363,7 @@
     });
     
     // 获取音频元素
-    const audio = new Audio('https://assets.codepen.io/4175254/happy-birthday.mp3');
+    const audio = new Audio('birthday.wav');
     
     // 点击播放按钮
     playBtn.addEventListener('click', () => {
@@ -508,6 +463,20 @@
     document.getElementById('next-btn').disabled = true;
     document.querySelectorAll('#prev-btn, #next-btn').forEach(btn => {
       btn.classList.add('opacity-50', 'cursor-not-allowed');
+    });
+    
+    // 优化移动端交互体验
+    document.addEventListener('DOMContentLoaded', () => {
+      // 调整播放器在小屏幕上的尺寸
+      if (window.innerWidth < 640) { // 小屏设备
+        const player = document.getElementById('player-container');
+        player.classList.remove('max-w-md');
+        player.classList.add('w-full', 'p-4');
+        
+        const cover = document.querySelector('.cover-container');
+        cover.classList.remove('w-48', 'h-48');
+        cover.classList.add('w-36', 'h-36');
+      }
     });
   </script>
 </body>
