@@ -23,7 +23,7 @@
             light: '#f8fafc'
           },
           fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif'],
+            sans: ['Acy', 'system-ui', 'sans-serif'],
           },
         },
       }
@@ -165,6 +165,29 @@
         100% { transform: scale(1); }
       }
     }
+
+
+  /* 声明Acy字体家族 */
+  @font-face {
+    font-family: 'Acy';
+    src: url('font/Acy-Regular.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'Acy';
+    src: url('font/Acy-Medium.otf') format('opentype');
+    font-weight: 500;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'Acy';
+    src: url('font/Acy-Bold.otf') format('opentype');
+    font-weight: 700;
+    font-style: normal;
+  }
+
+
   </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4 text-light overflow-hidden relative">
@@ -211,7 +234,7 @@
     
     <!-- 音频信息 -->
     <div class="text-center mb-6">
-      <h1 class="text-2xl font-bold mb-2 text-dark">陶喆给你发来一条语音，<br>请注意查收🎧</h1>
+      <h1 class="text-2xl font-bold mb-2 text-dark">陶喆给你发来一条语音^_^<br>请注意查收🎧</h1>
     </div>
     
     <!-- 音频播放器 -->
